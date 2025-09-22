@@ -15,6 +15,8 @@ This document explains how to set up a **three‑tier architecture** (Web → Ap
    - IPv4 CIDR block: `10.0.0.0/16`
    - Tenancy: Default
 4. Click **Create VPC**.
+5. ![vpc create](img/1.jpg)
+
 
 ### 2) Create 8 subnets
 1. Go to **Subnets** → **Create subnet**.
