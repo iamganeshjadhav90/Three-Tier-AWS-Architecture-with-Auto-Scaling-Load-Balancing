@@ -15,13 +15,19 @@ This document explains how to set up a **three‑tier architecture** (Web → Ap
    - IPv4 CIDR block: `10.0.0.0/16`
    - Tenancy: Default
 4. Click **Create VPC**.
-5. ![vpc create](img/1.jpg)
+
+   
+   ![vpc create](IMG/1.jpg)
 
 
 ### 2) Create 8 subnets
 1. Go to **Subnets** → **Create subnet**.
 2. Select your `three-tier-vpc`.
 3. Add 8 subnets with the following details (spread across different AZs):
+
+   
+    ![a](IMG/2.jpg)
+
    - `public-a` (10.0.0.0/24)
    - `public-b` (10.0.1.0/24)
    - `public-c` (10.0.2.0/24)
@@ -30,10 +36,18 @@ This document explains how to set up a **three‑tier architecture** (Web → Ap
    - `app-b` (10.0.11.0/24)
    - `db-a` (10.0.20.0/24)
    - `db-b` (10.0.21.0/24)
-4. For the **public subnets**, enable **Auto-assign public IPv4 address**.
+
+ ![b](IMG/3.jpg)
+
+     
+5. For the **public subnets**, enable **Auto-assign public IPv4 address**.
 
 ### 3) Create an RDS Subnet Group
 1. Go to **RDS console** → **Subnet groups** → **Create DB Subnet group**.
+
+   
+ ![c](IMG/4.jpg)
+   
 2. Add name: `myapp-db-subnet-group`.
 3. Choose the VPC `three-tier-vpc`.
 4. Add the two subnets `db-a` and `db-b`.
@@ -41,6 +55,9 @@ This document explains how to set up a **three‑tier architecture** (Web → Ap
 
 ### 4) Launch RDS (MariaDB)
 1. Go to **Databases** → **Create database**.
+
+    ![d](IMG/5.jpg)
+   
 2. Choose **Standard create**.
 3. Engine: **MariaDB**.
 4. Templates: Free tier or production depending on need.
@@ -57,23 +74,41 @@ This document explains how to set up a **three‑tier architecture** (Web → Ap
 
 ### 5 & 6) Create Internet Gateway and attach to VPC
 1. In **VPC console**, open **Internet Gateways** → **Create IGW**.
+
+ ![e](IMG/7.jpg)
+
+ 
 2. Name: `three-tier-igw`.
 3. Select IGW → **Actions → Attach to VPC** → choose `three-tier-vpc`.
 
 ### 7 & 8) Create a Route Table and add route to IGW
 1. In **Route tables** → **Create route table**.
 2. Name: `public-rt`, select `three-tier-vpc`.
+
+ ![f](IMG/9.jpg)
+
 3. Edit routes → Add route:
    - Destination: `0.0.0.0/0`
    - Target: `three-tier-igw`
+  
+      ![g](IMG/10.jpg)
+
 
 ### 9) Associate Route Table to Public Subnets
 1. In the route table, go to **Subnet associations**.
 2. Select all public subnets (`public-a` to `public-d`).
 
+
+ ![h](IMG/11.jpg)
+
+
+
 ### 10) Launch Jump Server (Bastion) in Public Subnet
 1. Go to **EC2** → **Launch instance**.
 2. AMI: Amazon Linux 2023.
+
+ ![i](IMG/13.jpg)
+
 3. Instance type: `t3.micro`.
 4. Network: `three-tier-vpc`.
 5. Subnet: `public-a`.
@@ -87,11 +122,17 @@ Use your `.pem` key and connect via SSH.
 ssh -i key.pem ec2-user@<jump-server-public-ip>
 ```
 
+ ![j](IMG/14.jpg)
+
+
 ### 12) Install MariaDB Client on Jump Server
 ```bash
 sudo dnf update -y
 sudo dnf install -y mariadb
 ```
+
+ ![k](IMG/15.jpg)
+
 
 ### 13) Connect to RDS from Jump Server
 ```bash
@@ -105,6 +146,10 @@ CREATE USER 'appuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL PRIVILEGES ON myappdb.* TO 'appuser'@'%';
 FLUSH PRIVILEGES;
 ```
+
+
+ ![l](IMG/16.jpg)
+
 
 ### 15–17) Launch App Tier Instance and Install PHP & Nginx
 1. Launch a private EC2 instance in `app-a` subnet.
@@ -127,24 +172,59 @@ Use curl or web browser (via internal load balancer later).
 ### 20) Create AMI of App Instance
 Right-click the instance → **Image and templates → Create image**.
 
+ ![m](IMG/18.jpg)
+
+
 ### 21) Create App Tier Auto Scaling Group
 1. Create a Launch Template using the App AMI.
+
+ ![n](IMG/19.jpg)
+
+
 2. Create Auto Scaling Group in `app-a` and `app-b` subnets.
 3. Min size: 2, Max: 6.
 
 ### 22–23) Launch Web Tier Instance
 1. Launch instance in `public-a` subnet.
+
+ ![o](IMG/21.jpg)
+
+
 2. Install Nginx and host HTML pages.
 3. Create AMI.
+
+ ![p](IMG/22.jpg)
+
 
 ### 24) Create Auto Scaling Group for Web Tier
 1. Create Launch Template using Web AMI.
 2. Create Auto Scaling Group in `public-a` and `public-b` subnets.
 3. Attach an Application Load Balancer (ALB).
 
+ ![q](IMG/23.jpg)
+
+
+
 ### 25) Verify Setup
 - Access ALB DNS → Web tier page should load.
 - Submit form → App tier writes to RDS.
 - Verify data inside RDS.
 
+ ![s](IMG/24.jpg)
+
+
+### 26) CloudWatch Data
+
+ ![t](IMG/25.jpg)
+
+
+
+### 26) Successfully Login
+
+
+ ![u](IMG/26.jpg)
+
+
+  ![v](IMG/27.jpg)
+  
 ---
