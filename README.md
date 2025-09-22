@@ -65,11 +65,6 @@ The architecture ensures **high availability, scalability, and secure access** u
 
 ---
 
-## 📸 Architecture Diagram
-*(Add your architecture diagram here)*
-
----
-
 ## ✅ Deployment Steps (Summary)
 1. Create VPC with 8 subnets (public/private).  
 2. Configure Internet Gateway + Route Tables.  
